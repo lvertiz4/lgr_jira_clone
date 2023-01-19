@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::Display;
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -50,11 +51,11 @@ impl Story {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct DBState {
     // This struct represents the entire db state which includes the last_item_id, epics, and stories
     // TODO: add fields (make sure the fields are public)
     pub last_item_id: u32,
     pub epics: HashMap<u32, Epic>,
     pub stories: HashMap<u32, Story>,
-}
+} //added 'use std::fm::Display to allow fields within DBState to be Cloned (Clone needs Display trait)
