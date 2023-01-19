@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub enum Status {
     // TODO: add fields (make sure the fields are public)
     Open,
@@ -11,7 +11,7 @@ pub enum Status {
     Closed,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Epic {
     // TODO: add fields (make sure the fields are public)
     pub name: String,
@@ -32,7 +32,7 @@ impl Epic {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Story {
     // TODO: add fields (make sure the fields are public)
     pub name: String,
@@ -59,3 +59,4 @@ pub struct DBState {
     pub epics: HashMap<u32, Epic>,
     pub stories: HashMap<u32, Story>,
 } //added 'use std::fm::Display to allow fields within DBState to be Cloned (Clone needs Display trait)
+    // Also derived Clone trait to Epic, Story and DBState data types

@@ -61,7 +61,7 @@ impl JiraDatabase {
         let mut parsed = self.database.read_db()?;
 
         let epic = parsed.epics.get_mut(&epic_id).ok_or_else(|| anyhow!("count not find epic in database"))?;
-        let story_index = epic.stories.iter().position(|id| id == &story_id).ok_or_else(|| anyhow!("story id not found in epic's stories vector"));// from within Epic struct, the stories field has a Vector of u32, returning index of Story with provided story_id.
+        let story_index = epic.stories.iter().position(|id| id == &story_id).ok_or_else(|| anyhow!("story id not found in epic's stories vector"))?;// from within Epic struct, the stories field has a Vector of u32, returning index of Story with provided story_id.
 
 
         epic.stories.remove(story_index); // within Epic struct (chose from epics hashmap using provided epic_id) from parsed DBState instance, remove story_id based on story_id provided in function argument's parameters
@@ -95,7 +95,7 @@ trait Database {
 
 }
 
-pub struct JSONFileDatabase {
+struct JSONFileDatabase {
     pub file_path: String,
 }
 
@@ -127,6 +127,7 @@ pub mod test_utils {
             Self {
                 last_written_state: RefCell::new(DBState{last_item_id: 0, epics: HashMap::new(), stories: HashMap::new() })
             }
+        }
     }
 
     impl Database for MockDB {
@@ -169,7 +170,7 @@ mod tests {
 
         assert_eq!(id, expected_id);
         assert_eq!(db_state.last_item_id, expected_id);
-        assert_eq!(db_state.epics.get(&id)Some(&epic));
+        assert_eq!(db_state.epics.get(&id), Some(&epic));
     }
 
     #[test]
@@ -198,6 +199,7 @@ mod tests {
 
         let epic_id = result.unwrap();
         //TODO: fix this error by deriving the appropriate traits for the Story struct
+        let result = db.create_story(story.clone(), epic_id.clone());
         assert_eq!(result.is_ok(), true);
 
         let id = result.unwrap();
@@ -234,6 +236,7 @@ mod tests {
         assert_eq!(result.is_ok(), true);
         
         let epic_id = result.unwrap();
+        let result = db.create_story(story, epic_id);
         assert_eq!(result.is_ok(), true);
 
         let story_id = result.unwrap();
@@ -274,7 +277,7 @@ mod tests {
             database: Box::new(MockDB::new())
         };
         let epic = Epic::new("".to_owned(), "".to_owned());
-        let story = Story::new("".to_owned, "".to_owned());
+        let story = Story::new("".to_owned(), "".to_owned());
         let result = db.create_epic(epic);
         assert_eq!(result.is_ok(), true);
 
@@ -284,7 +287,7 @@ mod tests {
 
         let non_existent_story_id = 999;
         let result = db.delete_story(epic_id, non_existent_story_id);
-        assert_eq!(result.is_err(), false);
+        assert_eq!(result.is_err(), true);
     }
 
     #[test]
