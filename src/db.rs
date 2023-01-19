@@ -122,9 +122,10 @@ pub mod test_utils {
     }
 
     impl MockDB {
-        pub fn new() -> Self {
+        pub fn new() -> Self { //instantiate a new instance of DBState called MockDB; 
+                                // remember to instantiate new MockDB struct as a RefCell, then copy code/instructions to instantiate a new, clean DBState struct
             Self {
-                
+                last_written_state: RefCell::new(DBState{last_item_id: 0, epics: HashMap::new(), stories: HashMap::new() })
             }
     }
 
@@ -138,6 +139,7 @@ pub mod test_utils {
         fn write_db(&self, db_state: &DBState) -> Result<()> {
             let latest_state = &self.last_written_state;
             //TODO:fix this error by deriving the appropriate traits for DBState
+            //Answer: add 'Clone', because RefCell 
             *latest_state.borrow_mut() = db_state.clone();
             Ok(())
         }
