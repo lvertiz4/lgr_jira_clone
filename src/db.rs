@@ -1,6 +1,5 @@
 use anyhow::{Result, anyhow};
 use std::fs;
-
 use crate::models::{DBState, Epic, Story, Status};
 
 pub struct JiraDatabase {
@@ -118,12 +117,13 @@ pub mod test_utils {
 
     use super::*;
     pub struct MockDB {
-        last_written_state: RefCell<DBState>,
+        last_written_state: RefCell<DBState>, //single owner of DBState struct
     }
 
     impl MockDB {
         pub fn new() -> Self { //instantiate a new instance of DBState called MockDB; 
-                                // remember to instantiate new MockDB struct as a RefCell, then copy code/instructions to instantiate a new, clean DBState struct
+                                // remember to instantiate new MockDB struct as a RefCell (i.e. single owner, but field inside struct are mutable/writeable, even if they are referenced by someone else),
+                                // then copy code/instructions to instantiate a new, clean DBState struct called MockDB
             Self {
                 last_written_state: RefCell::new(DBState{last_item_id: 0, epics: HashMap::new(), stories: HashMap::new() })
             }
@@ -133,15 +133,17 @@ pub mod test_utils {
     impl Database for MockDB {
         fn read_db(&self) -> Result<DBState> {
             //TODO: Fix this error by deriving the appropriate trais for DBState
-            let state = self.last_written_state.borrow().clone();
-            Ok(state)
+            //Answer: added 'Clone' attribute, to allow 'state' to make a copy of DBState inside the RefCell smart pointer
+            let state = self.last_written_state.borrow().clone(); //Self=MockDB; .borrow() immutably (i.e. reads) the value inside RefCell, which is an instance of DState
+            //.clone() is called to make a copy of the inside of RefCell, which is a new instance of DBState
+            Ok(state) // the new instance of DBState, within the instance of MockDB, is returns from the function call
         }
 
         fn write_db(&self, db_state: &DBState) -> Result<()> {
-            let latest_state = &self.last_written_state;
+            let latest_state = &self.last_written_state; //one owner of DBState struct, which is now variable 'latest_state'
             //TODO:fix this error by deriving the appropriate traits for DBState
-            //Answer: add 'Clone', because RefCell 
-            *latest_state.borrow_mut() = db_state.clone();
+            //Answer: added 'Clone' attribute, to allow 'state' to make a copy of DBState inside the RefCell smart pointer
+            *latest_state.borrow_mut() = db_state.clone(); //mutably/write borrows DBState inside RefCell, and copies that value to be altered later
             Ok(())
         }
     }
