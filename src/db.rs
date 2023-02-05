@@ -12,11 +12,11 @@ impl JiraDatabase {
         Self {
             database: Box::new(JSONFileDatabase{
                 file_path
-            })
+            }) //creates new instance of JSONFileDatabase, which implements the Database traits 'read' and 'write', using file_path of the location of DBState
         }
     }    
     pub fn read_db(&self) -> Result<DBState> {
-        self.database.read_db()
+        self.database.read_db() //returns a copy/instance of DBState
     }
 
     pub fn create_epic(&self, epic: Epic) -> Result<u32> {
@@ -24,9 +24,9 @@ impl JiraDatabase {
         let last_id = parsed.last_item_id;
         let new_id = last_id + 1;
         parsed.last_item_id = new_id;
-        parsed.epics.insert(new_id, epic);
-        self.database.write_db(&parsed)?;
-        Ok(new_id)
+        parsed.epics.insert(new_id, epic); //takes epic argument, and new_id to create new epic in this instance of DBState, 'parsed'
+        self.database.write_db(&parsed)?; //take 'parsed', now with new epic included, to write over the DBState instance 'self' - i.e. the original DBState
+        Ok(new_id) //confirm write to DBState successful by return new_id of newly-uploaded epic
     }
 
     pub fn create_story(&self, story: Story, epic_id: u32) -> Result<u32> {
