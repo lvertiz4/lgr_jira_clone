@@ -23,6 +23,24 @@ pub enum Status {
     Resolved,
     Closed,
 }
+//Step 1, Note 1: implement the Display trait for the Status Enum, to allow Enum to String mapping
+impl Display for Status {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result { //&self means the function takes a references to the Status enum
+        match self { //here, lowercase 'self' is to the type being referenced, which is a reference to the Status enum. Lowercase 'self' is an argument for the function
+            Self::Open => { //Capital 'Self' to indicate the type being used, in this case, an instance of the Status enum
+                write!(f, "OPEN")
+            }
+            Self::InProgress => {
+                write!(f, "IN PROGRESS")
+            }
+            Self::Resolved => {
+                write!(, "RESOLVED")
+            }
+            Self::Closed => {
+                write!(f, "CLOSED")
+            }
+    }
+}
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Epic {
