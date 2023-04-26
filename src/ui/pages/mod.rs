@@ -24,7 +24,15 @@ impl Page for HomePage {
         println!("----------------------------- EPICS -----------------------------");
         println!("     id     |               name               |      status      ");
 
-        //TODO: print out epics using get_column_string(). Also make sure epics are sorted by id
+        //TODO: print out epics column contents using get_column_string(). Also make sure epics are sorted by id
+        let epics = self.db.read_db()?.epics; //make a copy of epics field from DBState and assign it to the variable 'epics'(remember, DBState is a Struct, and epics is a Hashmap)
+        for id in epics.keys().sorted() { //sorted function comes from IterTools module; sorts epics by value of index, which is the 'key' of the epics Hashmap
+            let epic = &epics[id];//brackets indicate you are looking for a particular index in the hashmap held in 'epics', which is a copy of DBState::epics
+            let id_col = get_column_string(&id.to_string(),11);//11 = twelve space inside id column header (remember: indexes start at zero, so length of 11 = 12 distinct spaces)
+            let name_col = get_column_string(&epic.name, 32);
+            let status_col = get_column_string(&epic.status.to_string(), 17);
+            println!("{} | {} | {}", id_col, name_col, status_col);
+        }
 
         println!();
         println!();
@@ -35,7 +43,20 @@ impl Page for HomePage {
     }
 
     fn handle_input(&self, input: &str) -> Result<Option<Action>> {
-        todo!() // match against the user input and return the corresponding action. If the user input was invalid return None
+        //todo!() // match against the user input and return the corresponding action. If the user input was invalid return None
+        let epics = self.db.read_db()?.epics;//make a copy of the 'epics' field from the DB State struct. 'epics' is a hashmap of indexed Epics.
+        match input {//these are the letters at bottom of the homepage that correspond to fields in Action Enums in 'models.rs'
+            "q" => Ok(Some(Action::Exit)),//Returns 'Ok' because function return type is a Result that could return an Option representing an Action enum variant
+            "c" => Ok(Some(Action::CreateEpic)),
+            input => {
+                if let Ok(epic_id) = input.parse::<u32>() {//parse function parses string into another type. With the tubrofish operator, we tell the compiler expect a u32 to be assigned to Ok(epic_id) action
+                    if epics.contains_keys(&epic_id) { //function from std Hashmap module, returns True if key is found within Hashmap, in this case, the entered epic_id by the user
+                        return Ok(Some(Action::NavigateToEpicDetail {epic_id}));
+                    }
+                }
+                Ok(None) //if epic_id entered returns 'False' from .contains_keys function, Result<Option<>> returns 'None', and not a variant of the Actions enum
+            }
+        }
     }
 }
 
@@ -72,7 +93,8 @@ impl Page for EpicDetail {
     }
 
     fn handle_input(&self, input: &str) -> Result<Option<Action>> {
-        todo!()//match against the user input and return the corresponding action. If the user input was invalid, return None
+        //todo!()//match against the user input and return the corresponding action. If the user input was invalid, return None
+        let epics
     }
 }
 

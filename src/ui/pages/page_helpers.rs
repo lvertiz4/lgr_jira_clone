@@ -1,12 +1,32 @@
 use ellipse::Ellipse;
 
 pub fn get_column_string(text: &str, width: usize) -> String {
-    todo!() // use the truncate_ellipse function from the ellipse crate
-    let string = text;
-    fn truncate_ellipse_with(&self, len: usize, ellipse: &str) -> Self::Output {
-    
-    //return a String
-    }
+    //todo!() use the truncate_ellipse function from the ellipse crate
+    let length = text.len();
+    match length.cmd(&width) { //comparing length of provided text with width value to be used in truncate_ellispse() function later on
+        std::cmp::Ordering::Equal => text.to_owned(),//'Ordering' Enum has three values: Equal, Less, Greater
+        std::cmp::Ordering::Less => {
+            let left_over = width-len;
+            let mut column_string = text.to_owned();
+            for _ in 0..left_over { //fot
+                column_string.push(' ');
+            }
+            column_string
+        },
+        std::cmp::Ordering::Greater => {
+            if width == 0 {
+                return "".to_owned();
+            } else if width == 1 {
+                return ".".to_owned();
+            } else if width == 2 {
+                return "..".to_owned();
+            } else if width == 3 {
+                return "...".to_owned();
+        }
+        let result = text.truncate_ellipse(width-3);
+        result.to_owned();
+        },
+    }  
 }
 
 #[cfg(test)]
