@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use intertools::Itertools;
+use itertools::Itertools;
 use anyhow::Result;
 use anyhow::anyhow;
 
@@ -50,7 +50,7 @@ impl Page for HomePage {
             "c" => Ok(Some(Action::CreateEpic)),
             input => {
                 if let Ok(epic_id) = input.parse::<u32>() {//parse function parses string into another type. With the tubrofish operator, we tell the compiler expect a u32 to be assigned to Ok(epic_id) action
-                    if epics.contains_keys(&epic_id) { //function from std Hashmap module, returns True if key is found within Hashmap, in this case, the entered epic_id by the user
+                    if epics.contains_key(&epic_id) { //function from std Hashmap module, returns True if key is found within Hashmap, in this case, the entered epic_id by the user
                         return Ok(Some(Action::NavigateToEpicDetail {epic_id}));
                     }
                 }
@@ -68,21 +68,31 @@ pub struct EpicDetail {
 impl Page for EpicDetail {
     fn draw_page(&self) -> Result<()> {
         let db_state = self.db.read_db()?;
-        let epic = db_state.epics.get(&self.epic_id).ok_or_else(|| anyhow!("could not find epic!"))?;
+        let epic = db_state.epics.get(&self.epic_id).ok_or_else(|| anyhow!("could not find epic!"))?;//epic=temp variable to save epic from copy of db_state
 
         println!("------------------------------ EPIC ------------------------------");
         println!("  id  |     name     |         description         |    status    ");
 
-        //Todo: print out epiocs usign get_column_string()
+        //Todo: print out epiocs using get_column_string()
+        let id_col = get_column_string(&self.epic_id.to_string(), 5); //&self=EpicDetail struct, 5=width of possible epic id, up to 99,998
+        let name_col = get_column_string(&epic.name, 12);//&epic = temp variable to hold epic from db_state variable, which is a reference count of JiraDatabase, a Database trait object
+        let desc_col = get_column_string(&epic.description, 27);//'Description' field of Epic struct is a String, and can be printed because String have the Display trait
+        let status_col = get_column_string(&epic.status.to_string(), 13);//Status is an Enum, so each variant is converted to a String, which has the Display trait, using to_owned()
+        println!("{} | {} | {} | {}", id_col, name_col, desc_col, status_col);
 
         println!();
 
         println!("---------------------------- STORIES ----------------------------");
-        println!("     id     |               name               |      status      ");
-
-        let stories = &db_state.stories();
-        
+        println!("     id     |               name               |      status      ");        
         //Todo: print out stories using get_column_string(). ALso make sure to sort stories by id
+        let stories = &db_state.stories;
+        for id in epic.stories.iter().sorted() {
+            let story = &stories[id];
+            let id_col = get_column_string(&id.to_string(), 11);
+            let name_col = get_column_string(&story.name, 32);
+            let status_col = get_column_string(&story.status.to_string(), 17);
+            println!("{} | {} | {}", id_col, name_col, status_col);
+        }
         
         println!();
         println!();
@@ -94,7 +104,23 @@ impl Page for EpicDetail {
 
     fn handle_input(&self, input: &str) -> Result<Option<Action>> {
         //todo!()//match against the user input and return the corresponding action. If the user input was invalid, return None
-        let epics
+        let db_state = self.db.read_db()?;//make a copy of the 'stories' field from the DB State struct. 'stories' is a hashmap of indexed Epics; ? propagates DBState, or an Error, not a Result type
+        let stories = db_state.stories;//therefor, if DBState is returned in the last line, and not a Result type, you can reference 'stories' field of DBState struct
+
+        match input {
+            "p" => Ok(Some(Action::NavigateToPreviousPage)),
+            "u" => Ok(Some(Action::UpdateEpicStatus {epic_id: self.epic_id})),
+            "d" => Ok(Some(Action::DeleteEpic {epic_id: self.epic_id})),
+            "c" => Ok(Some(Action::CreateStory {epic_id: self.epic_id})),
+            input => {
+                if let Ok(story_id) = input.parse::<u32>() {//if the input is a number, match to the 'stories' Vector in the Epic struct
+                    if stories.contains_key(&story_id) {// go to next step if there is a match between input number and 'stories' Vector value
+                        return Ok(Some(Action::NavigateToStoryDetail {epic_id: self.epic_id, story_id}));
+                    }
+                }
+                Ok(None)
+            }
+        }
     }
 }
 
@@ -113,6 +139,12 @@ impl Page for StoryDetail {
         println!("  id  |     name     |         description         |    status    ");
 
         //Todo: print out story details using get_column_string
+        let id_col = get_column_string(&self.story_id.to_string(), 5);//self = StoryDetail struct, that include a user input number and a copy of the Database to see if there is a match with the user input number
+        let name_col = get_column_string(&story.name, 12);//here we are referencing the Story struct field
+        let desc_col = get_column_string(&story.description, 27);
+        let status_col = get_column_string(&story.status.to_string(),13);
+        println!("{} | {} | {} | {}", id_col, name_col, desc_col, status_col);
+
 
         println!();
         println!();
@@ -123,7 +155,13 @@ impl Page for StoryDetail {
     }
 
     fn handle_input(&self, input: &str) -> Result<Option<Action>> {
-        todo!() // match against the user input and return the corresponding action. If the user input was not valid, return none
+        //todo!() // match against the user input and return the corresponding action. If the user input was not valid, return none
+        match input {
+            "p" => Ok(Some(Action::NavigateToPreviousPage)),
+            "u" => Ok(Some(Action::UpdateStoryStatus {story_id: self.story_id})),//self = StoryDetail struct
+            "d" => Ok(Some(Action::DeleteStory {epic_id: self.epic_id, story_id: self.story_id})),
+            _ => { Ok(None) }
+        }
     }
 }
 
@@ -154,6 +192,7 @@ mod tests {
 
         #[test]
         fn handle_input_should_return_the_correct_actions() {
+            let db = Rc::new(JiraDatabase { database: Box::new(MockDB::new())});
 
             let epic = Epic::new("".to_owned(), "".to_owned());
 
@@ -203,14 +242,14 @@ mod tests {
         fn draw_page_should_throw_error_for_invalid_epic_id() {
             let db = Rc::new(JiraDatabase{database: Box::new(MockDB::new())});
             let page = EpicDetail{epic_id: 999, db};
-            assert_eq!(page.draw_page().is_err(0, true));
+            assert_eq!(page.draw_page().is_err(), true);
         }
 
         #[test]
         fn handle_input_should_return_the_correct_actions() {
             let db = Rc::new(JiraDatabase{database: Box::new(MockDB::new())});
             let epic_id = db.create_epic(Epic::new("".to_owned(), "".to_owned())).unwrap();
-            let story_id = db.create_story(Story::new("".to_owned(), "".to_owned())).unwrap();
+            let story_id = db.create_story(Story::new("".to_owned(), "".to_owned()), epic_id).unwrap();
             let page = EpicDetail {epic_id, db};
 
             let p = "p";
@@ -226,7 +265,7 @@ mod tests {
             assert_eq!(page.handle_input(u).unwrap(), Some(Action::UpdateEpicStatus {epic_id: 1}));
             assert_eq!(page.handle_input(d).unwrap(), Some(Action::DeleteEpic {epic_id: 1}));
             assert_eq!(page.handle_input(c).unwrap(), Some(Action::CreateStory {epic_id: 1}));
-            assert_eq!(page.handle_input(&story_in.to_string()).unwrap(), Some(Action::NavigateToStoryDetail{epic_id: 1, story_id: 2}));
+            assert_eq!(page.handle_input(&story_id.to_string()).unwrap(), Some(Action::NavigateToStoryDetail{epic_id: 1, story_id: 2}));
             assert_eq!(page.handle_input(invalid_story_id).unwrap(), None);
             assert_eq!(page.handle_input(junk_input).unwrap(), None);
             assert_eq!(page.handle_input(junk_input_with_valid_prefix).unwrap(), None);
@@ -250,7 +289,8 @@ mod tests {
         #[test]
         fn handle_input_should_not_throw_error() {
             let db = Rc::new(JiraDatabase {database: Box::new(MockDB::new())});
-            let epic_id = db.create_epic(Epic::new("".to_owned(), "".to_owned()), epic_id).unwrap();
+            let epic_id = db.create_epic(Epic::new("".to_owned(), "".to_owned())).unwrap();
+            let story_id = db.create_story(Story::new("".to_owned(), "".to_owned()), epic_id).unwrap();
             let page = StoryDetail { epic_id, story_id, db };
             assert_eq!(page.handle_input("").is_ok(), true);
         }
@@ -260,8 +300,8 @@ mod tests {
             let db = Rc::new(JiraDatabase {database: Box::new(MockDB::new())});
             let epic_id = db.create_epic(Epic::new("".to_owned(), "".to_owned())).unwrap();
             let _ = db.create_story(Story::new("".to_owned(), "".to_owned()), epic_id).unwrap();
-            let page = StoryDetail {epic_id, story_id, db};
-            asert_eq!(page.handle_input("").is_ok(), true);
+            let page = StoryDetail {epic_id, story_id:999, db};
+            assert_eq!(page.draw_page().is_err(), true);
         }
 
         #[test]
@@ -275,7 +315,7 @@ mod tests {
             let d = "d";
             let some_number = "1";
             let junk_input = "j983f2j";
-            let junt_input_with_valid_prefix = "p983f2j";
+            let junk_input_with_valid_prefix = "p983f2j";
             let input_with_trailing_white_spaces = "p\n";
 
             assert_eq!(page.handle_input(p).unwrap(), Some(Action::NavigateToPreviousPage));
