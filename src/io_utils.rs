@@ -8,3 +8,7 @@ pub fn get_user_input() -> String {
     //1)take input with io::stdin() 2) .read_line() ocks this handle and reads a line of input, appending it to the specified buffer 3) .read_line() returns a Result, from the which value is take using .unwrap(
     user_input
 }
+
+pub fn wait_for_key_press(){
+    io::stdin().read_line(&mut String::new()).unwrap();
+}

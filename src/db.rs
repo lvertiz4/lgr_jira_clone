@@ -122,8 +122,8 @@ pub mod test_utils {
 
     impl MockDB {
         pub fn new() -> Self { //instantiate a new instance of DBState called MockDB; 
-                                // remember to instantiate new MockDB struct as a RefCell (i.e. single owner, but field inside struct are mutable/writeable, even if they are referenced by someone else),
-                                // then copy code/instructions to instantiate a new, clean DBState struct called MockDB
+                               // remember to instantiate new MockDB struct as a RefCell (i.e. single owner, but field inside struct are mutable/writeable, even if they are referenced by someone else),
+                               // then copy code/instructions to instantiate a new, clean DBState struct called MockDB
             Self {
                 last_written_state: RefCell::new(DBState{last_item_id: 0, epics: HashMap::new(), stories: HashMap::new() })
             }
