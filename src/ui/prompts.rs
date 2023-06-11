@@ -61,23 +61,26 @@ fn delete_story_prompt() -> bool {
     false
 }
 fn update_status_prompt() -> Option<Status>{
-    prinln!("----------------------------");
+    println!("----------------------------");
     println!("New Status (1 - OPEN, 2 - IN-PROGRESS, 3 - RESOLVED, 4 - CLOSED");
-    let input = get_user_input();
-    let input = input.trim().parse::<u8>(); //prase function turns &str into u8 integers with tuberfish syntax
-    match input {
-        1 => {
-            return Some(Status::Open);
+    let status = get_user_input();
+    let status = status.trim().parse::<u8>(); //prase function turns &str into u8 integers with tuberfish syntax
+    if let Ok(status) = status {
+        match status {
+            1 => {
+                return Some(Status::Open);
+            }
+            2 => {
+                return Some(Status::InProgress);
+            }  
+            3 => {
+                return Some(Status::Resolved);
+            }
+            4 => {
+                return Some(Status::Closed);
+            }
+            _ => return None
+            }
         }
-        2 => {
-            return Some(Status::InProgress);
-        }  
-        3 => {
-            return Some(Status::Resolved);
-        }
-        4 => {
-            return Some(Status::Closed);
-        }
+        None //Don't forget to return None with a Option
     }
-    None //Don't forget to return None with a Option
-}

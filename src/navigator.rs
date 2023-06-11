@@ -168,7 +168,7 @@ mod tests {
         let db_state = db.read_db().unwrap();
         assert_eq!(db_state.epics.len(), 1);
 
-        let epic = db_state.epics.into_inter().next().unwrap().1;
+        let epic = db_state.epics.into_iter().next().unwrap().1;
         assert_eq!(epic.name, "name".to_owned());
         assert_eq!(epic.description, "description".to_owned());
     }
@@ -177,12 +177,12 @@ mod tests {
     fn handle_action_should_handle_update_epic() {
         let db = Rc::new(JiraDatabase {database: Box::new(MockDB::new())});
         let epic_id = db.create_epic(Epic::new("".to_owned(), "".to_owned())).unwrap();
-        let mut nav = Navigator.new(Rc::clone(&db));
+        let mut nav = Navigator::new(Rc::clone(&db));
         let mut prompts = Prompts::new();
 
         prompts.update_status = Box::new(|| Some(Status::InProgress));
         nav.set_prompts(prompts);
-        nav.handle_action(Action::UpdateEpicStatus {epid_id}.unwrap());
+        nav.handle_action(Action::UpdateEpicStatus {epic_id}).unwrap();
 
         let db_state = db.read_db().unwrap();
         assert_eq!(db_state.epics.get(&epic_id).unwrap().status, Status::InProgress);
@@ -215,7 +215,7 @@ mod tests {
         let db_state = db.read_db().unwrap();
         assert_eq!(db_state.stories.len(), 1);
 
-        let story = db_state.stories.inter_iter().next().unwrap().1;
+        let story = db_state.stories.into_iter().next().unwrap().1;
         assert_eq!(story.name, "".to_owned());
         assert_eq!(story.description, "".to_owned());
     }
@@ -239,7 +239,7 @@ mod tests {
     fn handle_action_should_delete_story() {
         let db = Rc::new(JiraDatabase {database: Box::new(MockDB::new())});
         let epic_id = db.create_epic(Epic::new("".to_owned(), "".to_owned())).unwrap();
-        let story_id = db.create_story(Story::new("".to_owned(), "".to_owned(), epic_id).unwrap());
+        let story_id = db.create_story(Story::new("".to_owned(), "".to_owned()), epic_id).unwrap();
         let mut nav = Navigator::new(Rc::clone(&db));
         let mut prompts = Prompts::new();
 
