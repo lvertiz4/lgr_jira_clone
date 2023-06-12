@@ -48,6 +48,8 @@ fn main() {
                     }
                 }
             }
+        } else {
+            break;//recall that 'break' is a keyword to exit early from a loop, in this case, the loop to render the screen
         }
     }
 }
