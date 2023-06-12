@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::any::Any;
 
 use itertools::Itertools;
 use anyhow::Result;
@@ -13,6 +14,7 @@ use page_helpers::*;
 pub trait Page {
     fn draw_page(&self) -> Result<()>;
     fn handle_input(&self, input: &str) -> Result<Option<Action>>;
+    fn as_any(&self) -> &dyn Any;//Any itself can be used to get a TypeId; &dyn Any (a borrowed trait object), it has the is and downcast_ref methods, to test if the contained value is of a given type, and to get a reference to the inner value as a type.
 }
 
 pub struct HomePage {
@@ -57,6 +59,10 @@ impl Page for HomePage {
                 Ok(None) //if epic_id entered returns 'False' from .contains_keys function, Result<Option<>> returns 'None', and not a variant of the Actions enum
             }
         }
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 
@@ -122,6 +128,10 @@ impl Page for EpicDetail {
             }
         }
     }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 
 pub struct StoryDetail {
@@ -163,6 +173,8 @@ impl Page for StoryDetail {
             _ => { Ok(None) }
         }
     }
+
+    fn as_any(&self) -> &dyn Any { self}
 }
 
 #[cfg(test)]

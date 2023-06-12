@@ -216,8 +216,8 @@ mod tests {
         assert_eq!(db_state.stories.len(), 1);
 
         let story = db_state.stories.into_iter().next().unwrap().1;
-        assert_eq!(story.name, "".to_owned());
-        assert_eq!(story.description, "".to_owned());
+        assert_eq!(story.name, "name".to_owned());
+        assert_eq!(story.description, "description".to_owned());
     }
 
     #[test]

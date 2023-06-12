@@ -26,7 +26,7 @@ fn create_epic_prompt() -> Epic {
     let epic_name = get_user_input();//create variable to store first user input
     println!("Epic Description: ");
     let epic_desc = get_user_input();
-    let epic = Epic::new(epic_name.trim().to_string(), epic_desc.trim().to_owned());//instantiate new Epic with user input assigned to particular struct fields
+    let epic = Epic::new(epic_name.trim().to_owned(), epic_desc.trim().to_owned());//instantiate new Epic with user input assigned to particular struct fields
     epic
 }
 
@@ -36,7 +36,7 @@ fn create_story_prompt() -> Story {
  let story_name = get_user_input();
  println!("Story Description: ");
  let story_desc = get_user_input();
- let story = Story::new(story_name.trim().to_string(), story_desc.trim().to_owned());
+ let story = Story::new(story_name.trim().to_owned(), story_desc.trim().to_owned());
  story
 
 }
