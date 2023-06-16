@@ -26,7 +26,7 @@ fn main() {
             //2. render page
             if let Err(error) = page.draw_page() {
                 println!("Error rendering page: {}\nPress any key to continue...", error);
-                wait_for_key_press();
+                wait_for_key_press();//Use this method when displaying errors. It will lock this handle and reads a line of input
             };
         //3. get user input
         let user_input = get_user_input();
